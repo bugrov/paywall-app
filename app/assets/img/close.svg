@@ -1,0 +1,6 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Close">
+<circle id="Ring" cx="22" cy="22" r="19.25" stroke="#B9A7FF" stroke-opacity="0.5" stroke-width="1.5"/>
+<path id="Cross" d="M15 15L29 29M29 15L15 29" stroke="#FFF8EC" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</svg>

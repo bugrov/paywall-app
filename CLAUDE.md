@@ -18,21 +18,34 @@ CTA, тестовая покупка записывается в БД. Плат�
 ## Архитектура
 ```
 app/
-  app.vue                  оболочка, <NuxtPage />
-  pages/index.vue          экран paywall
-  components/paywall/      компоненты экрана (OfferCard, PurchaseButton, ...)
-  composables/             usePaywall: загрузка тарифов, покупка, состояния
-  assets/scss/main.scss    токены (:root), базовый сброс
-  assets/scss/_mixins.scss toRem(), focus-ring, tap-target, reset-button
+  app.vue                          оболочка, <NuxtPage />
+  pages/index.vue                  связывает usePaywall с PaywallScreen (+ ?preview в dev)
+  components/paywall/
+    PaywallScreen.vue              весь экран, презентационный (props + emits)
+    OfferCard.vue                  карточка тарифа (radio внутри label)
+    OfferCardSkeleton.vue          скелетон карточки
+    PurchaseButton.vue             CTA: обычная, неактивная, со спиннером
+  composables/usePaywall.ts        тарифы, выбор, покупка, статус экрана
+  composables/useDeviceId.ts       device_id в cookie (UUID на год)
+  utils/format.ts, utils/id.ts     формат цены и подписи, createId()
+  assets/img/*.svg                 иллюстрации и иконки, выгружены из Figma
+  assets/scss/main.scss            токены (:root), базовый сброс
+  assets/scss/_mixins.scss         toRem(), focus-ring, tap-target, visually-hidden, reset-button
 server/
-  api/offers.get.ts        GET /api/offers: список тарифов
-  api/purchase.post.ts     POST /api/purchase: тестовая покупка, запись в БД
-  utils/db.ts              подключение к Neon, запросы
-  db/schema.sql            схема таблицы purchases
+  api/offers.get.ts                GET /api/offers
+  api/purchase.post.ts             POST /api/purchase (этап 3: заглушка без БД)
+  utils/offers.ts                  каталог тарифов, findOffer()
+shared/types/paywall.ts            Offer, PurchaseRequest, PurchaseResponse, PaywallStatus
 ```
+Появится на этапе 4: `server/utils/db.ts` (Neon) и `server/db/schema.sql` (таблица purchases).
+
 Поток: страница вызывает `GET /api/offers`, рисует две карточки, по CTA шлёт `POST /api/purchase`
 с `offerId`, `deviceId` и заголовком `Idempotency-Key`; сервер валидирует, записывает покупку, отвечает
-успехом; фронт показывает состояние успеха или ошибки.
+успехом; фронт показывает состояние успеха или ошибки. Повтор после ошибки использует тот же
+`Idempotency-Key`, смена тарифа сбрасывает его.
+
+Состояния экрана (`PaywallStatus`): `loading`, `ready`, `purchasing`, `error`, `success`. В dev их можно
+открыть без API: `/?preview=loading|purchasing|error|success`.
 
 ## Токены дизайна (концепт «Комета Кузя»)
 night `#1B1F4B` фон, comet `#FF7A3D` CTA и выбранная карточка, mint `#5EEAD4` плашка «выгода»,

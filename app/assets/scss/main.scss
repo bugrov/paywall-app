@@ -7,6 +7,18 @@
   --color-mint: #5eead4;
   --color-lilac: #b9a7ff;
   --color-paper: #fff8ec;
+
+  // Прозрачные варианты из макета (значения как в Figma, без пересчёта)
+  --color-paper-07: rgb(255 248 236 / 7%);
+  --color-paper-12: rgb(255 248 236 / 12%);
+  --color-paper-14: rgb(255 248 236 / 14%);
+  --color-paper-40: rgb(255 248 236 / 40%);
+  --color-paper-50: rgb(255 248 236 / 50%);
+  --color-paper-80: rgb(255 248 236 / 80%);
+  --color-paper-85: rgb(255 248 236 / 85%);
+  --color-lilac-50: rgb(185 167 255 / 50%);
+  --color-comet-14: rgb(255 122 61 / 14%);
+  --color-night-75: rgb(27 31 75 / 75%);
   --font-display: 'Unbounded', system-ui, sans-serif;
   --font-body: 'Onest', system-ui, sans-serif;
 }

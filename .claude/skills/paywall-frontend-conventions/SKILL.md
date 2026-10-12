@@ -42,6 +42,13 @@ description: Правила верстки проекта paywall: БЭМ, SCSS 
   (`additionalData` в `nuxt.config.ts`), `@use` в компонентах писать не нужно:
   `toRem()`, `focus-ring`, `tap-target`, `reset-button`.
 - Новый миксин добавляй в `_mixins.scss`, а не копируй блок свойств по компонентам.
+- Отрицательные значения: `toRem(-9)` stylelint-конфиг не пропускает (регулярка ждёт только цифры).
+  Пиши `-1 * toRem(9)`, Sass посчитает сам.
+- Рамки и обводки: Figma рисует stroke inside/outside без влияния на раскладку, а CSS `border` двигает
+  контент. Для совпадения с макетом используй `box-shadow: inset 0 0 0 Npx` (inside) и
+  `box-shadow: 0 0 0 Npx` (outside), `border` не используй.
+- Выбор по умолчанию и прочее состояние, которое должно попасть в SSR, считай через `computed`:
+  в SSR `watch` и `watchEffect` после первого прогона не перезапускаются.
 
 ## Порядок свойств
 Задаёт `.stylelintrc.json` (позиция, display, flex/grid, отступы, размеры, декор, фон, цвет,

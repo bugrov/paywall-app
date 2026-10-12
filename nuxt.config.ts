@@ -16,8 +16,9 @@ export default defineNuxtConfig({
   },
   fonts: {
     families: [
-      { name: 'Unbounded', provider: 'google', weights: [700], subsets: ['cyrillic', 'latin'] },
-      { name: 'Onest', provider: 'google', weights: [400, 600], subsets: ['cyrillic', 'latin'] }
+      // latin-ext нужен ради знака ₽ (U+20BD), его нет в cyrillic и latin
+      { name: 'Unbounded', provider: 'google', weights: [700], subsets: ['cyrillic', 'latin', 'latin-ext'] },
+      { name: 'Onest', provider: 'google', weights: [400, 600, 700], subsets: ['cyrillic', 'latin', 'latin-ext'] }
     ]
   },
   vite: {

@@ -21,6 +21,19 @@ $base-font-size: 16;
   min-height: toRem($size);
 }
 
+// Скрыт визуально, остаётся доступным для клавиатуры и скринридеров
+@mixin visually-hidden {
+  position: absolute;
+  margin: -1px;
+  padding: 0;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  border: 0;
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
 @mixin reset-button {
   padding: 0;
   border: 0;
