@@ -8,6 +8,7 @@ const props = defineProps<{
   selectedId: string | null
   status: PaywallStatus
   errorMessage: string
+  restoring?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -22,7 +23,9 @@ const isPurchasing = computed(() => props.status === 'purchasing')
 const isLoading = computed(() => props.status === 'loading')
 // Скелетоны: пока грузим тарифы или если тарифы не пришли совсем
 const showSkeleton = computed(() => isLoading.value || !props.offers.length)
-const showNotice = computed(() => props.status === 'error' && Boolean(props.errorMessage))
+// Сообщение показываем при ошибке и после восстановления без результата (статус ready)
+const showNotice = computed(() => (props.status === 'error' || props.status === 'ready') && Boolean(props.errorMessage))
+const restoreBlocked = computed(() => isLoading.value || isPurchasing.value || Boolean(props.restoring))
 
 const title = computed(() => (isSuccess.value ? 'Вся галактика открыта!' : 'Открой всю галактику'))
 
@@ -139,9 +142,9 @@ function onSubmit() {
       <button
         v-if="!isSuccess"
         class="paywall__restore"
-        :class="{ 'paywall__restore--dimmed': isLoading || isPurchasing }"
+        :class="{ 'paywall__restore--dimmed': restoreBlocked }"
         type="button"
-        :disabled="isLoading || isPurchasing"
+        :disabled="restoreBlocked"
         @click="emit('restore')"
       >
         Восстановить покупки

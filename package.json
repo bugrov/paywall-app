@@ -15,6 +15,7 @@
     "check": "npm run lint && npm run lint:style && npm run typecheck"
   },
   "dependencies": {
+    "@neondatabase/serverless": "^1.2.0",
     "nuxt": "^4.6.1",
     "vue": "^3.5.43",
     "vue-router": "^5.4.0"

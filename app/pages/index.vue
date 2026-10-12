@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { offers, selectedId, status, errorMessage, select, submit } = usePaywall()
+const { offers, selectedId, status, errorMessage, restoring, select, submit, restore } = usePaywall()
 
 // Только в dev: ?preview=loading|purchasing|error|success показывает состояние из макета без API
 const route = useRoute()
@@ -20,8 +20,10 @@ function closePaywall() {
     :selected-id="selectedId"
     :status="viewStatus"
     :error-message="viewError"
+    :restoring="restoring"
     @select="select"
     @submit="submit"
+    @restore="restore"
     @close="closePaywall"
   />
 </template>

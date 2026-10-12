@@ -1,5 +1,7 @@
 export const PURCHASE_ERROR = 'Не удалось оформить покупку. Проверьте интернет и нажмите «Повторить».'
 const OFFERS_ERROR = 'Не удалось загрузить тарифы. Проверьте интернет и нажмите «Повторить».'
+const RESTORE_EMPTY = 'Покупок на этом устройстве не найдено.'
+const RESTORE_ERROR = 'Не удалось восстановить покупки. Проверьте интернет и попробуйте ещё раз.'
 
 type PurchaseState = 'idle' | 'purchasing' | 'error' | 'success'
 
@@ -12,6 +14,9 @@ export function usePaywall() {
   const offers = computed(() => data.value ?? [])
   const chosenId = ref<string | null>(null)
   const purchaseState = ref<PurchaseState>('idle')
+  const restoring = ref(false)
+  // Сообщение под карточками: ошибка покупки или результат восстановления
+  const notice = ref('')
   // Один ключ на попытку: повтор после обрыва не создаёт вторую покупку
   let idempotencyKey: string | null = null
 
@@ -38,12 +43,7 @@ export function usePaywall() {
     return 'ready'
   })
 
-  const errorMessage = computed(() => {
-    if (purchaseState.value === 'error') {
-      return PURCHASE_ERROR
-    }
-    return fetchError.value ? OFFERS_ERROR : ''
-  })
+  const errorMessage = computed(() => notice.value || (fetchError.value ? OFFERS_ERROR : ''))
 
   function select(offerId: string) {
     if (offerId === selectedId.value) {
@@ -51,16 +51,18 @@ export function usePaywall() {
     }
     chosenId.value = offerId
     idempotencyKey = null
+    notice.value = ''
     if (purchaseState.value === 'error') {
       purchaseState.value = 'idle'
     }
   }
 
   async function purchase() {
-    if (!selectedId.value || purchaseState.value === 'purchasing') {
+    if (!selectedId.value || purchaseState.value === 'purchasing' || restoring.value) {
       return
     }
     purchaseState.value = 'purchasing'
+    notice.value = ''
     idempotencyKey ??= createId()
     try {
       await $fetch<PurchaseResponse>('/api/purchase', {
@@ -71,6 +73,7 @@ export function usePaywall() {
       idempotencyKey = null
       purchaseState.value = 'success'
     } catch {
+      notice.value = PURCHASE_ERROR
       purchaseState.value = 'error'
     }
   }
@@ -84,5 +87,28 @@ export function usePaywall() {
     await purchase()
   }
 
-  return { offers, selectedId, status, errorMessage, select, submit }
+  /** «Восстановить покупки»: есть ли на этом устройстве записанные покупки */
+  async function restore() {
+    if (restoring.value || purchaseState.value === 'purchasing') {
+      return
+    }
+    restoring.value = true
+    notice.value = ''
+    try {
+      const purchases = await $fetch<PurchaseResponse[]>('/api/purchases', {
+        query: { deviceId: deviceId.value }
+      })
+      if (purchases.length) {
+        purchaseState.value = 'success'
+      } else {
+        notice.value = RESTORE_EMPTY
+      }
+    } catch {
+      notice.value = RESTORE_ERROR
+    } finally {
+      restoring.value = false
+    }
+  }
+
+  return { offers, selectedId, status, errorMessage, restoring, select, submit, restore }
 }

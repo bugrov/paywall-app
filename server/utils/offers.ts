@@ -1,3 +1,5 @@
+import type { Offer } from '#shared/types/paywall'
+
 // Каталог тарифов. Единственный источник правды: его читают и GET /api/offers,
 // и POST /api/purchase (проверка offerId).
 export const OFFERS: Offer[] = [
