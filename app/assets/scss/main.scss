@@ -1,0 +1,39 @@
+// Глобальные стили: токены концепта «Комета Кузя» и базовый сброс.
+// Цвета и шрифты задаются только здесь, в компонентах используются через var().
+
+:root {
+  --color-night: #1b1f4b;
+  --color-comet: #ff7a3d;
+  --color-mint: #5eead4;
+  --color-lilac: #b9a7ff;
+  --color-paper: #fff8ec;
+  --font-display: 'Unbounded', system-ui, sans-serif;
+  --font-body: 'Onest', system-ui, sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background-color: var(--color-night);
+  color: var(--color-paper);
+  font-family: var(--font-body);
+
+  // Префикс нужен iOS WKWebView: без него текст раздувается при повороте экрана
+  // stylelint-disable-next-line property-no-vendor-prefix
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}

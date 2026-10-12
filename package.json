@@ -1,0 +1,36 @@
+{
+  "name": "paywall-app",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "lint:style": "stylelint \"app/**/*.{vue,scss}\"",
+    "lint:style:fix": "stylelint \"app/**/*.{vue,scss}\" --fix",
+    "typecheck": "nuxt typecheck",
+    "check": "npm run lint && npm run lint:style && npm run typecheck"
+  },
+  "dependencies": {
+    "nuxt": "^4.6.1",
+    "vue": "^3.5.43",
+    "vue-router": "^5.4.0"
+  },
+  "devDependencies": {
+    "@nuxt/eslint": "^1.17.0",
+    "@nuxt/fonts": "^1.0.1",
+    "eslint": "^10.12.0",
+    "postcss-html": "^2.0.0",
+    "sass": "^1.105.1",
+    "stylelint": "^17.16.0",
+    "stylelint-config-standard-scss": "^17.0.0",
+    "stylelint-config-standard-vue": "^2.0.0",
+    "stylelint-order": "^8.1.2",
+    "stylelint-scss": "^7.3.0",
+    "typescript": "^6.0.3",
+    "vue-tsc": "^3.3.13"
+  }
+}

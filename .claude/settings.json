@@ -1,0 +1,15 @@
+{
+  "enabledPlugins": {
+    "feature-dev@claude-plugins-official": true,
+    "code-review@claude-plugins-official": true,
+    "pr-review-toolkit@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true,
+    "api-error-handling@claude-skills": true,
+    "rest-api-design@claude-skills": true,
+    "api-security-hardening@claude-skills": true,
+    "nuxt-v4@claude-skills": true,
+    "vitest-testing@claude-skills": true,
+    "playwright@claude-skills": true,
+    "figma@claude-plugins-official": true
+  }
+}

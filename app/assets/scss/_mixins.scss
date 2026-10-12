@@ -1,0 +1,31 @@
+@use "sass:math";
+
+// Автоматически подключается в каждый <style lang="scss"> (см. nuxt.config.ts).
+// Здесь только функции и примеси: сам файл не должен выводить CSS.
+
+$base-font-size: 16;
+
+@function toRem($px) {
+  @return math.div($px, $base-font-size) * 1rem;
+}
+
+@mixin focus-ring($color: var(--color-comet)) {
+  &:focus-visible {
+    outline: toRem(3) solid $color;
+    outline-offset: toRem(3);
+  }
+}
+
+@mixin tap-target($size: 44) {
+  min-width: toRem($size);
+  min-height: toRem($size);
+}
+
+@mixin reset-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
