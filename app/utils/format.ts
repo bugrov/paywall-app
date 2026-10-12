@@ -9,7 +9,7 @@ export function formatPrice(value: number): string {
   return rubles.format(value)
 }
 
-/** Подпись под ценой: «в месяц» или «207 ₽ в месяц» */
+/** Подпись под ценой: «в месяц», «207 ₽ в месяц» или «в год», если эквивалент в месяц не задан */
 export function formatOfferNote(offer: Offer): string {
   if (offer.period === 'month') {
     return 'в месяц'

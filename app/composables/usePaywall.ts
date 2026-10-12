@@ -3,15 +3,30 @@ const OFFERS_ERROR = 'Не удалось загрузить тарифы. Пр�
 const RESTORE_EMPTY = 'Покупок на этом устройстве не найдено.'
 const RESTORE_ERROR = 'Не удалось восстановить покупки. Проверьте интернет и попробуйте ещё раз.'
 
+// Запрос, который завис без обрыва, не должен оставлять экран в спиннере навсегда
+const REQUEST_TIMEOUT_MS = 15_000
+
 type PurchaseState = 'idle' | 'purchasing' | 'error' | 'success'
+
+function httpStatus(error: unknown): number | undefined {
+  const candidate = error as { statusCode?: number, status?: number } | null
+  return candidate?.statusCode ?? candidate?.status
+}
 
 export function usePaywall() {
   const deviceId = useDeviceId()
   const { data, status: fetchStatus, error: fetchError, refresh } = useFetch<Offer[]>('/api/offers', {
-    default: () => []
+    default: () => [],
+    timeout: REQUEST_TIMEOUT_MS
   })
 
-  const offers = computed(() => data.value ?? [])
+  // Не доверяем форме ответа: прокси может вернуть 200 с HTML вместо JSON
+  const offers = computed(() => (Array.isArray(data.value) ? data.value : []))
+  // Загрузка закончилась, а тарифов нет: это сбой, а не вечная загрузка
+  const offersFailed = computed(() => (
+    Boolean(fetchError.value) || (fetchStatus.value === 'success' && !offers.value.length)
+  ))
+
   const chosenId = ref<string | null>(null)
   const purchaseState = ref<PurchaseState>('idle')
   const restoring = ref(false)
@@ -34,7 +49,7 @@ export function usePaywall() {
     if (purchaseState.value !== 'idle') {
       return purchaseState.value
     }
-    if (fetchError.value) {
+    if (offersFailed.value) {
       return 'error'
     }
     if (fetchStatus.value === 'pending' || !offers.value.length) {
@@ -43,7 +58,7 @@ export function usePaywall() {
     return 'ready'
   })
 
-  const errorMessage = computed(() => notice.value || (fetchError.value ? OFFERS_ERROR : ''))
+  const errorMessage = computed(() => notice.value || (offersFailed.value ? OFFERS_ERROR : ''))
 
   function select(offerId: string) {
     if (offerId === selectedId.value) {
@@ -65,22 +80,33 @@ export function usePaywall() {
     notice.value = ''
     idempotencyKey ??= createId()
     try {
-      await $fetch<PurchaseResponse>('/api/purchase', {
+      const result = await $fetch<PurchaseResponse>('/api/purchase', {
         method: 'POST',
         headers: { 'Idempotency-Key': idempotencyKey },
-        body: { offerId: selectedId.value, deviceId: deviceId.value } satisfies PurchaseRequest
+        body: { offerId: selectedId.value, deviceId: deviceId.value } satisfies PurchaseRequest,
+        timeout: REQUEST_TIMEOUT_MS
       })
+      // Успехом считаем только ответ с идентификатором записи, а не любой 2xx
+      if (!result?.purchaseId) {
+        throw new Error('Пустой ответ на покупку')
+      }
       idempotencyKey = null
       purchaseState.value = 'success'
-    } catch {
+    } catch (error) {
+      console.error('purchase failed', error)
+      // 4xx: запрос неверен, повтор с тем же ключом дал бы тот же отказ
+      const code = httpStatus(error)
+      if (code !== undefined && code >= 400 && code < 500) {
+        idempotencyKey = null
+      }
       notice.value = PURCHASE_ERROR
       purchaseState.value = 'error'
     }
   }
 
-  /** Главная кнопка: купить, а при ошибке загрузки тарифов - загрузить заново */
+  /** Главная кнопка: купить, а при сбое загрузки тарифов - загрузить заново */
   async function submit() {
-    if (fetchError.value && purchaseState.value === 'idle') {
+    if (offersFailed.value && purchaseState.value === 'idle') {
       await refresh()
       return
     }
@@ -96,14 +122,19 @@ export function usePaywall() {
     notice.value = ''
     try {
       const purchases = await $fetch<PurchaseResponse[]>('/api/purchases', {
-        query: { deviceId: deviceId.value }
+        query: { deviceId: deviceId.value },
+        timeout: REQUEST_TIMEOUT_MS
       })
+      if (!Array.isArray(purchases)) {
+        throw new TypeError('Неожиданный ответ сервера')
+      }
       if (purchases.length) {
         purchaseState.value = 'success'
       } else {
         notice.value = RESTORE_EMPTY
       }
-    } catch {
+    } catch (error) {
+      console.error('restore failed', error)
       notice.value = RESTORE_ERROR
     } finally {
       restoring.value = false

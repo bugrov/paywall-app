@@ -16,20 +16,23 @@ function connectionString(): string | undefined {
 export async function useDb(): Promise<Sql> {
   const url = connectionString()
   if (!url) {
-    throw createError({ statusCode: 500, statusMessage: 'Internal Server Error', message: 'База данных не настроена' })
+    // Подробность только в лог: клиенту не нужно знать, как устроена конфигурация
+    console.error('DATABASE_URL is not set')
+    throw createError({ statusCode: 500, statusMessage: 'Internal Server Error', message: 'Сервис временно недоступен' })
   }
 
   client ??= neon(url)
   const sql = client
 
-  schemaReady ??= (async () => {
-    for (const statement of SCHEMA_STATEMENTS) {
-      await sql.query(statement)
-    }
-  })().catch((error) => {
-    schemaReady = null
-    throw error
-  })
+  // Схема создаётся один раз на инстанс одним запросом (транзакция), параллельные вызовы делят промис
+  schemaReady ??= sql
+    .transaction(SCHEMA_STATEMENTS.map(statement => sql.query(statement)))
+    .then(() => undefined)
+    .catch((error: unknown) => {
+      schemaReady = null
+      console.error('schema init failed', error)
+      throw error
+    })
   await schemaReady
 
   return sql

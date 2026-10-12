@@ -173,10 +173,9 @@ function onSubmit() {
   &__close {
     @include reset-button;
     @include focus-ring(var(--color-mint));
+    @include tap-target;
 
     display: flex;
-    width: toRem(44);
-    height: toRem(44);
     border-radius: 50%;
   }
 
@@ -189,7 +188,6 @@ function onSubmit() {
   }
 
   &__title {
-    margin: 0;
     width: 100%;
     color: var(--color-paper);
     text-align: center;
@@ -253,12 +251,12 @@ function onSubmit() {
   &__restore {
     @include reset-button;
     @include focus-ring(var(--color-mint));
+    @include tap-target;
 
     display: flex;
     justify-content: center;
     align-items: center;
     width: 100%;
-    height: toRem(44);
     color: var(--color-paper-85);
     line-height: 1.3;
     text-decoration: underline;

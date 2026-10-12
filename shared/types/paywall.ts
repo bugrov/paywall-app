@@ -18,7 +18,7 @@ export interface PurchaseRequest {
   deviceId: string
 }
 
-/** Ответ POST /api/purchase при успехе */
+/** Покупка: ответ POST /api/purchase и элемент ответа GET /api/purchases */
 export interface PurchaseResponse {
   purchaseId: string
   offerId: string

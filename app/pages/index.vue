@@ -1,7 +1,8 @@
 <script setup lang="ts">
 const { offers, selectedId, status, errorMessage, restoring, select, submit, restore } = usePaywall()
 
-// Только в dev: ?preview=loading|purchasing|error|success показывает состояние из макета без API
+// Только в dev: ?preview=loading|purchasing|error|success подменяет статус экрана, чтобы увидеть
+// состояние из макета без реальной покупки. Тарифы при этом грузятся как обычно.
 const route = useRoute()
 const previewStatus = import.meta.dev ? (route.query.preview as PaywallStatus | undefined) : undefined
 

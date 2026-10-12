@@ -29,18 +29,20 @@ description: Правила верстки проекта paywall: БЭМ, SCSS 
 </style>
 ```
 - БЭМ: `block`, `block__element`, `block--modifier`, kebab-case. Один блок на компонент, имя блока
-  совпадает с файлом (`OfferCard.vue` -> `.offer-card`).
+  смысловое и короткое (`OfferCard.vue` -> `.offer`, `PurchaseButton.vue` -> `.cta`,
+  `PaywallScreen.vue` -> `.paywall`); два блока в одном компоненте не создаём.
 - Вложенность `&__` не глубже одного уровня. Состояния через модификаторы, не через теги и не через `:deep`.
 - Повторяющееся оформление выноси в миксины.
 
 ## Токены, единицы, миксины
 - Цвета и шрифты только через CSS-переменные из `app/assets/scss/main.scss`:
-  `var(--color-night|comet|mint|lilac|paper)`, `var(--font-display)`, `var(--font-body)`.
+  `var(--color-night|comet|mint|lilac|paper)`, прозрачные варианты из макета (`--color-paper-07`,
+  `--color-lilac-50`, `--color-comet-14`, ...), `var(--font-display)`, `var(--font-body)`.
   Новый цвет сначала добавляется в `:root`, не в компонент.
 - Размеры из макета в пикселях пиши как `toRem(24)`. Голые `px` только для границ в 1-2px.
 - Функция и миксины лежат в `app/assets/scss/_mixins.scss` и подключены автоматически
   (`additionalData` в `nuxt.config.ts`), `@use` в компонентах писать не нужно:
-  `toRem()`, `focus-ring`, `tap-target`, `reset-button`.
+  `toRem()`, `focus-ring`, `tap-target`, `visually-hidden`, `reset-button`.
 - Новый миксин добавляй в `_mixins.scss`, а не копируй блок свойств по компонентам.
 - Отрицательные значения: `toRem(-9)` stylelint-конфиг не пропускает (регулярка ждёт только цифры).
   Пиши `-1 * toRem(9)`, Sass посчитает сам.

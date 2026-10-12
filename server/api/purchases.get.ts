@@ -1,8 +1,7 @@
-import { createError, defineEventHandler, getQuery } from 'h3'
+import { createError, defineEventHandler, getQuery, isError, setResponseHeader } from 'h3'
 import type { PurchaseResponse } from '#shared/types/paywall'
 import { useDb } from '../utils/db'
 
-// Покупки одного устройства: нужны для «Восстановить покупки». Свежие первыми.
 const DEVICE_ID_PATTERN = /^[A-Za-z0-9_-]{8,128}$/
 
 interface PurchaseRow {
@@ -11,6 +10,7 @@ interface PurchaseRow {
   created_at: string | Date
 }
 
+// GET /api/purchases?deviceId=: покупки одного устройства для «Восстановить покупки», свежие первыми.
 export default defineEventHandler(async (event): Promise<PurchaseResponse[]> => {
   const { deviceId } = getQuery(event)
 
@@ -18,8 +18,11 @@ export default defineEventHandler(async (event): Promise<PurchaseResponse[]> => 
     throw createError({ statusCode: 400, statusMessage: 'Bad Request', message: 'Нужен корректный deviceId' })
   }
 
-  const sql = await useDb()
+  // Ответ относится к конкретному устройству: ни браузер, ни CDN его хранить не должны
+  setResponseHeader(event, 'Cache-Control', 'no-store')
+
   try {
+    const sql = await useDb()
     const rows = await sql.query(
       `select id, offer_id, created_at from purchases
        where device_id = $1
@@ -34,6 +37,9 @@ export default defineEventHandler(async (event): Promise<PurchaseResponse[]> => 
       createdAt: new Date(row.created_at).toISOString()
     }))
   } catch (error) {
+    if (isError(error)) {
+      throw error
+    }
     console.error('purchases lookup failed', error)
     throw createError({ statusCode: 500, statusMessage: 'Internal Server Error', message: 'Не удалось получить покупки' })
   }

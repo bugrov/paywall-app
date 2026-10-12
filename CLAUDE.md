@@ -50,7 +50,7 @@ shared/types/paywall.ts            Offer, PurchaseRequest, PurchaseResponse, Pay
 `GET /api/purchases?deviceId=` и открывает экран успеха, если покупки есть.
 
 Состояния экрана (`PaywallStatus`): `loading`, `ready`, `purchasing`, `error`, `success`. В dev их можно
-открыть без API: `/?preview=loading|purchasing|error|success`.
+посмотреть без реальной покупки: `/?preview=loading|purchasing|error|success` (подменяется только статус).
 
 ## Токены дизайна (концепт «Комета Кузя»)
 night `#1B1F4B` фон, comet `#FF7A3D` CTA и выбранная карточка, mint `#5EEAD4` плашка «выгода»,
@@ -67,8 +67,8 @@ npm run dev              # http://localhost:3000
 Команды: `npm run lint`, `npm run lint:style`, `npm run typecheck`, `npm run check` (все три),
 `npm run build`, `npm run preview`.
 
-Node: Nuxt 4.6 требует `^22.21 || ^24.11 || >=26`. На 22.15 всё собирается, но выводится предупреждение;
-на Vercel выбрана подходящая версия.
+Node: Nuxt 4.6.1 требует `^22.22.3 || ^24.15.0 || >=26` (записано в `engines`, `.nvmrc` указывает 24).
+На локальной 22.15 всё собирается, но выводится предупреждение; на Vercel Node 24.x.
 
 ## Роуты
 | Метод | Путь | Назначение |

@@ -1,11 +1,12 @@
-import { createError, defineEventHandler, getHeader, readBody } from 'h3'
+import { createError, defineEventHandler, getHeader, isError, readBody } from 'h3'
 import type { PurchaseRequest, PurchaseResponse } from '#shared/types/paywall'
 import { useDb } from '../utils/db'
 import { findOffer } from '../utils/offers'
 
-// Тестовая покупка: пишет строку в purchases. Реальных платежей нет.
-// Повторный запрос с тем же Idempotency-Key не создаёт вторую запись, а возвращает первую.
-const ID_PATTERN = /^[A-Za-z0-9_-]{8,128}$/
+// Допустимый вид deviceId и Idempotency-Key: UUID и подобные токены
+const SAFE_ID_PATTERN = /^[A-Za-z0-9_-]{8,128}$/
+// Тело запроса - два коротких поля; всё, что больше, не читаем
+const MAX_BODY_BYTES = 1024
 
 interface PurchaseRow {
   id: string
@@ -22,17 +23,24 @@ function toResponse(row: PurchaseRow): PurchaseResponse {
   }
 }
 
+// POST /api/purchase: тестовая покупка, пишет строку в purchases. Реальных платежей нет.
+// Повторный запрос с тем же Idempotency-Key не создаёт вторую запись, а возвращает первую.
 export default defineEventHandler(async (event): Promise<PurchaseResponse> => {
+  const contentLength = Number(getHeader(event, 'content-length') ?? 0)
+  if (contentLength > MAX_BODY_BYTES) {
+    throw createError({ statusCode: 413, statusMessage: 'Payload Too Large', message: 'Слишком большой запрос' })
+  }
+
   const body = await readBody<Partial<PurchaseRequest> | null>(event)
   const idempotencyKey = getHeader(event, 'idempotency-key')
 
   if (!body || typeof body.offerId !== 'string' || typeof body.deviceId !== 'string') {
     throw createError({ statusCode: 400, statusMessage: 'Bad Request', message: 'Нужны offerId и deviceId' })
   }
-  if (!ID_PATTERN.test(body.deviceId)) {
+  if (!SAFE_ID_PATTERN.test(body.deviceId)) {
     throw createError({ statusCode: 400, statusMessage: 'Bad Request', message: 'Некорректный deviceId' })
   }
-  if (!idempotencyKey || !ID_PATTERN.test(idempotencyKey)) {
+  if (!idempotencyKey || !SAFE_ID_PATTERN.test(idempotencyKey)) {
     throw createError({ statusCode: 400, statusMessage: 'Bad Request', message: 'Нужен заголовок Idempotency-Key' })
   }
   if (!findOffer(body.offerId)) {
@@ -40,9 +48,10 @@ export default defineEventHandler(async (event): Promise<PurchaseResponse> => {
   }
 
   const { offerId, deviceId } = body
-  const sql = await useDb()
 
   try {
+    const sql = await useDb()
+
     const inserted = await sql.query(
       `insert into purchases (offer_id, device_id, idempotency_key)
        values ($1, $2, $3)
@@ -66,7 +75,7 @@ export default defineEventHandler(async (event): Promise<PurchaseResponse> => {
     }
     return toResponse(row)
   } catch (error) {
-    if (typeof error === 'object' && error !== null && 'statusCode' in error) {
+    if (isError(error)) {
       throw error
     }
     console.error('purchase failed', error)
